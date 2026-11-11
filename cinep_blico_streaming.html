@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CinePúblico - Filmes de Domínio Público</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#0A0A0C',
+              dark: '#121216',
+              card: '#1A1A22',
+              border: '#2A2A36',
+              orange: '#FF6B00',
+              'orange-hover': '#E05E00',
+              blue: '#0088FF',
+              'blue-hover': '#0070D4',
+              yellow: '#FFC700'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0A0A0C;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2A2A36;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #FF6B00;
+    }
+
+    /* Video player styling */
+    video::-webkit-media-controls-panel {
+      background-image: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
+    }
+
+    /* Smooth transitions */
+    .film-card {
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+    }
+    .film-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 12px 24px -10px rgba(255, 107, 0, 0.3);
+    }
+    
+    .glass-effect {
+      background: rgba(26, 26, 34, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body class="bg-brand-black text-gray-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-orange selection:text-white">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="sticky top-0 z-40 bg-brand-black/90 backdrop-blur-md border-b border-brand-border px-4 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-4 lg:gap-8">
+      <!-- Sidebar Toggle Button (Mobile) -->
+      <button id="toggle-sidebar-btn" class="lg:hidden text-gray-300 hover:text-brand-orange p-1 focus:outline-none">
+        <i class="fa-solid fa-bars text-xl"></i>
+      </button>
+
+      <!-- Logo -->
+      <a href="#" onclick="navigateSection('home')" class="flex items-center gap-2 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-orange to-red-600 flex items-center justify-center shadow-lg shadow-brand-orange/20 group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-film text-white text-xl"></i>
+        </div>
+        <span class="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-gray-200 to-brand-orange bg-clip-text text-transparent">
+          Cine<span class="text-brand-orange">Público</span>
+        </span>
+      </a>
+    </div>
+
+    <!-- Live Search Bar -->
+    <div class="flex-1 max-w-md relative hidden sm:block">
+      <div class="relative flex items-center">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-sm"></i>
+        <input type="text" id="search-input" placeholder="Pesquisar por título, diretor..." 
+               class="w-full bg-brand-dark border border-brand-border text-sm text-gray-200 pl-10 pr-10 py-2.5 rounded-full focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder-gray-500">
+        <button id="clear-search" class="hidden absolute right-3 text-gray-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <!-- Instant Search Results Dropdown -->
+      <div id="search-dropdown" class="hidden absolute left-0 right-0 top-full mt-2 bg-brand-card border border-brand-border rounded-xl shadow-2xl overflow-hidden z-50 max-h-96 overflow-y-auto">
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="flex items-center gap-3">
+      <button onclick="navigateSection('favorites')" class="relative p-2.5 rounded-full hover:bg-brand-dark text-gray-300 hover:text-brand-yellow transition-colors" title="Meus Favoritos">
+        <i class="fa-solid fa-bookmark text-lg"></i>
+        <span id="fav-badge-count" class="hidden absolute -top-1 -right-1 bg-brand-orange text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+      </button>
+
+      <div class="h-6 w-px bg-brand-border hidden sm:block"></div>
+
+      <!-- User Profile Dummy -->
+      <div class="flex items-center gap-3 pl-1">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Avatar" class="w-9 h-9 rounded-full border-2 border-brand-orange object-cover">
+        <span class="text-sm font-semibold text-gray-200 hidden md:block">Cinefilo</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Search Bar -->
+  <div class="sm:hidden px-4 py-2.5 bg-brand-dark border-b border-brand-border">
+    <div class="relative flex items-center">
+      <i class="fa-solid fa-magnifying-glass absolute left-3 text-gray-400 text-sm"></i>
+      <input type="text" id="search-input-mobile" placeholder="Pesquisar filmes..." 
+             class="w-full bg-brand-black border border-brand-border text-sm text-gray-200 pl-9 pr-8 py-2 rounded-lg focus:outline-none focus:border-brand-orange">
+    </div>
+  </div>
+
+  <div class="flex flex-1 relative overflow-hidden">
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-brand-dark border-r border-brand-border transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col justify-between">
+      <div class="p-4 space-y-6">
+        <div>
+          <p class="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Navegação</p>
+          <nav class="space-y-1">
+            <button onclick="navigateSection('home')" id="nav-home" class="nav-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-medium text-sm text-brand-orange bg-brand-orange/10 border-l-4 border-brand-orange transition-all">
+              <i class="fa-solid fa-house text-lg"></i>
+              <span>Página Inicial</span>
+            </button>
+            <button onclick="navigateSection('movies')" id="nav-movies" class="nav-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-medium text-sm text-gray-400 hover:text-white hover:bg-brand-card transition-all">
+              <i class="fa-solid fa-clapperboard text-lg"></i>
+              <span>Todos os Filmes</span>
+            </button>
+            <button onclick="navigateSection('genres')" id="nav-genres" class="nav-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-medium text-sm text-gray-400 hover:text-white hover:bg-brand-card transition-all">
+              <i class="fa-solid fa-layer-group text-lg"></i>
+              <span>Gêneros</span>
+            </button>
+            <button onclick="navigateSection('favorites')" id="nav-favorites" class="nav-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-medium text-sm text-gray-400 hover:text-white hover:bg-brand-card transition-all">
+              <i class="fa-solid fa-heart text-lg text-brand-yellow"></i>
+              <span>Minha Lista</span>
+            </button>
+          </nav>
+        </div>
+
+        <hr class="border-brand-border">
+
+        <!-- Info Badge Block -->
+        <div class="bg-brand-card/70 border border-brand-border/60 rounded-xl p-3.5">
+          <div class="flex items-center gap-2 text-brand-blue mb-1.5">
+            <i class="fa-solid fa-shield-halved text-base"></i>
+            <span class="text-xs font-bold uppercase tracking-wide">100% Legal</span>
+          </div>
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Todos os filmes hospedados pertencem ao domínio público mundial e estão em livre circulação cultural.
+          </p>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-brand-border text-center">
+        <p class="text-xs text-gray-400">© 2026 CinePúblico Labs</p>
+      </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/70 z-20 lg:hidden backdrop-blur-xs"></div>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto w-full">
+
+      <!-- SECTION: HOME VIEW -->
+      <div id="section-home" class="space-y-8">
+        
+        <!-- HERO BANNER INTERATIVO -->
+        <div id="hero-banner" class="relative rounded-3xl overflow-hidden min-h-[420px] sm:min-h-[480px] flex items-end border border-brand-border shadow-2xl bg-cover bg-center transition-all duration-700">
+          <!-- Gradient Overlay -->
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/70 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-r from-brand-black via-brand-black/50 to-transparent"></div>
+
+          <!-- Content inside Hero -->
+          <div class="relative z-10 p-6 sm:p-10 max-w-2xl space-y-4">
+            <div class="flex items-center gap-3">
+              <span class="px-3 py-1 bg-brand-orange text-white text-xs font-extrabold uppercase rounded-full tracking-wider shadow-md">
+                <i class="fa-solid fa-fire mr-1"></i> Filme em Destaque
+              </span>
+              <span id="hero-genre" class="px-3 py-1 bg-brand-blue/20 text-brand-blue border border-brand-blue/30 text-xs font-semibold rounded-full">
+                Terror / Sci-Fi
+              </span>
+            </div>
+
+            <h1 id="hero-title" class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+              A Noite dos Mortos-Vivos
+            </h1>
+
+            <div class="flex items-center gap-4 text-xs sm:text-sm text-gray-300">
+              <span class="flex items-center gap-1 text-brand-yellow font-bold text-base">
+                <i class="fa-solid fa-star"></i> <span id="hero-rating">4.8</span>
+              </span>
+              <span>•</span>
+              <span id="hero-year">1968</span>
+              <span>•</span>
+              <span id="hero-duration">96 min</span>
+              <span>•</span>
+              <span id="hero-age" class="px-2 py-0.5 border border-gray-600 rounded text-xs font-bold">16+</span>
+            </div>
+
+            <p id="hero-desc" class="text-gray-300 text-sm sm:text-base line-clamp-3 leading-relaxed">
+              Um grupo de pessoas se abriga em uma casa de fazenda isolada para resistir a hordas de mortos-vivos reanimados. Um clássico imortal do cinema independente de terror.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-4 pt-2">
+              <button id="hero-play-btn" class="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-white font-bold rounded-xl flex items-center gap-2.5 shadow-lg shadow-brand-orange/30 hover:scale-105 transition-all">
+                <i class="fa-solid fa-play text-lg"></i> Assistir Agora
+              </button>
+              <button id="hero-fav-btn" class="px-5 py-3.5 bg-brand-card hover:bg-brand-border text-gray-200 border border-brand-border font-semibold rounded-xl flex items-center gap-2 transition-all">
+                <i class="fa-regular fa-bookmark"></i> Minha Lista
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILTROS DINÂMICOS DA HOME -->
+        <div class="bg-brand-dark/80 border border-brand-border rounded-2xl p-4 sm:p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2 border-b border-brand-border/60">
+            <h2 class="text-lg font-bold flex items-center gap-2 text-white">
+              <i class="fa-solid fa-sliders text-brand-orange"></i> Filtros Dinâmicos
+            </h2>
+            <button id="reset-filters" class="text-xs text-brand-blue hover:underline font-semibold flex items-center gap-1">
+              <i class="fa-solid fa-rotate-right"></i> Limpar Filtros
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Gêneros -->
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Filtrar por Gênero</label>
+              <div id="genre-pills" class="flex flex-wrap gap-2">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
+            <!-- Classificação Indicativa -->
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Classificação Indicativa</label>
+              <div id="age-pills" class="flex flex-wrap gap-2">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARROSSEL DE CATEGORIA 1: EM ALTA -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+              <span class="w-2.5 h-6 bg-brand-orange rounded-full"></span>
+              Filmes Em Alta
+            </h3>
+            <span class="text-xs text-gray-400 font-semibold" id="count-trending">8 títulos</span>
+          </div>
+          <div id="grid-trending" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- CARROSSEL DE CATEGORIA 2: TERROR & SUSPENSE -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+              <span class="w-2.5 h-6 bg-brand-blue rounded-full"></span>
+              Clássicos do Terror & Suspense
+            </h3>
+          </div>
+          <div id="grid-horror" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- CARROSSEL DE CATEGORIA 3: SCI-FI & FANTASIA -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+              <span class="w-2.5 h-6 bg-brand-yellow rounded-full"></span>
+              Sci-Fi & Pioneiros do Cinema
+            </h3>
+          </div>
+          <div id="grid-scifi" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+      </div>
+
+      <!-- SECTION: MOVIES CATALOG VIEW -->
+      <div id="section-movies" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-border pb-4">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white">Catálogo Completo</h1>
+            <p class="text-sm text-gray-400">Explore todo o acervo público disponível na plataforma</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-400">Ordenar por:</span>
+            <select id="sort-select" class="bg-brand-dark border border-brand-border text-xs text-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-orange">
+              <option value="pop">Mais Populares</option>
+              <option value="year-desc">Mais Recentes (Ano)</option>
+              <option value="year-asc">Mais Antigos (Ano)</option>
+              <option value="title">Ordem Alfabética</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="catalog-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6">
+          <!-- Populated -->
+        </div>
+      </div>
+
+      <!-- SECTION: GENRES VIEW -->
+      <div id="section-genres" class="hidden space-y-6">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-black text-white">Gêneros e Categorias</h1>
+          <p class="text-sm text-gray-400">Navegue pelas obras divididas por estilo cinematográfico</p>
+        </div>
+
+        <div id="genres-container" class="space-y-8">
+          <!-- Dynamically populated by genre groups -->
+        </div>
+      </div>
+
+      <!-- SECTION: FAVORITES VIEW -->
+      <div id="section-favorites" class="hidden space-y-6">
+        <div class="border-b border-brand-border pb-4 flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
+              <i class="fa-solid fa-heart text-brand-yellow"></i> Minha Lista de Favoritos
+            </h1>
+            <p class="text-sm text-gray-400">Seus filmes salvos para assistir a qualquer momento</p>
+          </div>
+          <span id="fav-count-text" class="text-sm font-semibold text-brand-orange bg-brand-orange/10 px-3 py-1 rounded-full border border-brand-orange/20">0 filmes</span>
+        </div>
+
+        <div id="favorites-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+          <!-- Populated -->
+        </div>
+
+        <div id="empty-favorites" class="hidden text-center py-16 space-y-4">
+          <div class="w-16 h-16 bg-brand-dark border border-brand-border rounded-full flex items-center justify-center mx-auto text-gray-500 text-2xl">
+            <i class="fa-regular fa-bookmark"></i>
+          </div>
+          <h3 class="text-lg font-bold text-gray-300">Sua lista está vazia</h3>
+          <p class="text-sm text-gray-500 max-w-md mx-auto">Você ainda não marcou nenhum filme como favorito. Navegue pelo catálogo e clique no ícone de marcador para salvar!</p>
+          <button onclick="navigateSection('home')" class="px-5 py-2.5 bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold text-sm rounded-xl transition-colors">
+            Explorar Filmes
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ==================== MODAL / WATCH VIEW (REPRODUÇÃO) ==================== -->
+  <div id="watch-modal" class="fixed inset-0 z-50 hidden bg-brand-black/95 backdrop-blur-md overflow-y-auto">
+    <div class="min-h-screen px-3 sm:px-6 py-6 flex flex-col justify-center max-w-7xl mx-auto">
+      
+      <!-- Top Modal Navigation Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-brand-border mb-4">
+        <div class="flex items-center gap-3">
+          <button id="close-modal-btn" class="flex items-center gap-2 px-3 py-1.5 bg-brand-card hover:bg-brand-border text-gray-300 hover:text-white rounded-lg text-sm transition-colors">
+            <i class="fa-solid fa-arrow-left"></i> Voltar ao catálogo
+          </button>
+          <span class="text-xs text-gray-400 hidden sm:inline">| Em reprodução no CinePúblico</span>
+        </div>
+        <button id="close-modal-x" class="text-gray-400 hover:text-white text-2xl px-2">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Main Watch Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        
+        <!-- Left: Player & Info (2 cols in lg) -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- HTML5 Video Player container -->
+          <div class="relative bg-black rounded-2xl overflow-hidden shadow-2xl border border-brand-border aspect-video group">
+            <video id="main-video-player" controls preload="metadata" class="w-full h-full object-contain">
+              <source id="video-source" src="" type="video/mp4">
+              Seu navegador não suporta a tag de vídeo HTML5.
+            </video>
+          </div>
+
+          <!-- Title & Actions Bar -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-brand-dark p-5 rounded-2xl border border-brand-border">
+            <div class="space-y-1">
+              <h2 id="modal-movie-title" class="text-2xl sm:text-3xl font-black text-white">Título do Filme</h2>
+              <div class="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-gray-300">
+                <span id="modal-movie-genre" class="px-2.5 py-0.5 bg-brand-blue/20 text-brand-blue border border-brand-blue/30 rounded-md font-semibold">Gênero</span>
+                <span id="modal-movie-rating" class="text-brand-yellow font-bold flex items-center gap-1">
+                  <i class="fa-solid fa-star"></i> 4.5
+                </span>
+                <span>•</span>
+                <span id="modal-movie-year">1968</span>
+                <span>•</span>
+                <span id="modal-movie-duration">90 min</span>
+                <span>•</span>
+                <span id="modal-movie-age" class="px-2 py-0.5 border border-gray-600 rounded text-xs font-bold">12</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button id="modal-fav-btn" class="px-4 py-2.5 bg-brand-card hover:bg-brand-border border border-brand-border text-gray-200 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all">
+                <i class="fa-regular fa-bookmark"></i>
+                <span>Salvar</span>
+              </button>
+              <button onclick="shareMovie()" class="px-3.5 py-2.5 bg-brand-card hover:bg-brand-border border border-brand-border text-gray-300 hover:text-white rounded-xl text-sm transition-all" title="Compartilhar">
+                <i class="fa-solid fa-share-nodes"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Synopsis & Metadata -->
+          <div class="bg-brand-dark p-5 rounded-2xl border border-brand-border space-y-4">
+            <h3 class="text-base font-bold text-white uppercase tracking-wider text-xs text-gray-400">Sinopse da Obra</h3>
+            <p id="modal-movie-desc" class="text-gray-300 text-sm leading-relaxed">
+              Descrição detalhada do filme...
+            </p>
+            <div class="pt-3 border-t border-brand-border grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+              <div>
+                <span class="text-gray-500 block">Direção</span>
+                <span id="modal-movie-director" class="text-gray-200 font-semibold">Nome do Diretor</span>
+              </div>
+              <div>
+                <span class="text-gray-500 block">Licença</span>
+                <span class="text-brand-blue font-semibold">Domínio Público</span>
+              </div>
+              <div>
+                <span class="text-gray-500 block">Qualidade</span>
+                <span class="text-gray-200 font-semibold">HD Restaurado</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Comments Section -->
+          <div class="bg-brand-dark p-5 rounded-2xl border border-brand-border space-y-5">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-comments text-brand-orange"></i> Comentários da Comunidade
+            </h3>
+
+            <!-- Comment Form -->
+            <form id="comment-form" class="space-y-3">
+              <div class="flex gap-3">
+                <input type="text" id="comment-author" placeholder="Seu nome..." required 
+                       class="w-1/3 bg-brand-card border border-brand-border text-xs text-white px-3 py-2 rounded-lg focus:outline-none focus:border-brand-orange">
+                <div class="flex items-center gap-1 text-brand-yellow text-sm">
+                  <span class="text-xs text-gray-400 mr-1">Sua Nota:</span>
+                  <select id="comment-rating" class="bg-brand-card border border-brand-border text-xs text-brand-yellow rounded-lg px-2 py-2 focus:outline-none">
+                    <option value="5">★★★★★ (5)</option>
+                    <option value="4">★★★★☆ (4)</option>
+                    <option value="3">★★★☆☆ (3)</option>
+                    <option value="2">★★☆☆☆ (2)</option>
+                    <option value="1">★☆☆☆☆ (1)</option>
+                  </select>
+                </div>
+              </div>
+              <textarea id="comment-text" rows="2" placeholder="O que achou deste clássico do cinema?" required 
+                        class="w-full bg-brand-card border border-brand-border text-xs text-white p-3 rounded-lg focus:outline-none focus:border-brand-orange resize-none"></textarea>
+              <div class="flex justify-end">
+                <button type="submit" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold rounded-lg transition-colors">
+                  Enviar Comentário
+                </button>
+              </div>
+            </form>
+
+            <!-- Comments List -->
+            <div id="comments-list" class="space-y-3 pt-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Side: Recommended Movies -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-film text-brand-blue"></i> Relacionados e Recomendados
+          </h3>
+          <div id="recommended-list" class="space-y-3">
+            <!-- Populated -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ==================== JAVASCRIPT APP LOGIC ==================== -->
+  <script>
+    /* ==========================================================================
+       1. MOCK DATA - FILMES DE DOMÍNIO PÚBLICO COM MP4 REAIS (INTERNET ARCHIVE)
+       ========================================================================== */
+    const moviesData = [
+      {
+        id: "night-living-dead",
+        titulo: "Night of the Living Dead",
+        tituloPt: "A Noite dos Mortos-Vivos",
+        ano: 1968,
+        duracao: "96 min",
+        diretor: "George A. Romero",
+        genero: "Terror",
+        classificacao: "16",
+        avaliacao: 4.8,
+        capa: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80",
+        banner: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
+        videoUrl: "https://archive.org/download/night_of_the_living_dead/night_of_the_living_dead.mp4",
+        descricao: "Um grupo de pessoas se abriga em uma casa de fazenda isolada no oeste da Pensilvânia para resistir aos ataques de uma horda crescente de mortos-vivos reanimados. Marco divisor de águas do cinema de horror.",
+        destaque: true,
+        comentarios: [
+          { autor: "Carlos Eduardo", nota: 5, texto: "Obra-prima indiscutível do terror! A atmosfera claustrofóbica é incrível.", data: "Há 2 dias" },
+          { autor: "Mariana Costa", nota: 5, texto: "George Romero revoluciona o gênero com um orçamento mínimo. Atuação magistral.", data: "Há 1 semana" }
+        ]
+      },
+      {
+        id: "trip-to-moon",
+        titulo: "A Trip to the Moon",
+        tituloPt: "Viagem à Lua",
+        ano: 1902,
+        duracao: "15 min",
+        diretor: "Georges Méliès",
+        genero: "Sci-Fi",
+        classificacao: "Livre",
+        avaliacao: 4.9,
+        capa: "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?auto=format&fit=crop&w=600&q=80",
+        banner: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
+        videoUrl: "https://archive.org/download/silent-a-trip-to-the-moon/A%20Trip%20To%20The%20Moon%20%281902%29.mp4",
+        descricao: "Um grupo de astrônomos viaja até a Lua em uma cápsula impulsionada por um canhão gigante e explora a superfície lunar enfrentando os habitantes locais. O primeiro grande clássico de ficção científica da história.",
+        destaque: false,
+        comentarios: [
+          { autor: "Lucas Mendes", nota: 5, texto: "Efeitos especiais impressionantes para o ano de 1902. Poesia visual pura!", data: "Há 3 dias" }
+        ]
+      },
+      {
+        id: "nosferatu-1922",
+        titulo: "Nosferatu",
+        tituloPt: "Nosferatu: Uma Sinfonia do Horror",
+        ano: 1922,
+        duracao: "94 min",
+        diretor: "F. W. Murnau",
+        genero: "Terror",
+        classificacao: "14",
+        avaliacao: 4.7,
+        capa: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=600&q=80",
+        banner: "https://images.unsplash.com/photo-1514539079130-25950c84af65?auto=format&fit=crop&w=1200&q=80",
+        videoUrl: "https://archive.org/download/Nosferatu_DVD/Nosferatu.mp4",
+        descricao: "O vampiro Conde Orlok expressa seu interesse por uma nova residência e pela esposa de seu agente imobiliário. Obra máxima do expressionismo alemão no cinema.",
+        destaque: false,
+        comentarios: [
+          { autor: "Renata Lima", nota: 5, texto: "A sombra do Conde Orlok subindo as escadas é uma das cenas mais icônicas da história.", data: "Há 4 dias" }
+        ]
+      },
+      {
+        id: "the-general-1926",
+        titulo: "The General",
+        tituloPt: "A General",
+        ano: 1926,
+        duracao: "78 min",
+        diretor: "Buster Keaton",
+        genero: "Comédia",
+        classificacao: "Livre",
+        avaliacao: 4.8,
+        capa: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=600&q=80",
+        banner: "https://images.unsplash.com/photo-1518676599602-2170e954d07b?auto=format&fit=crop&w=1200&q=80",
+        videoUrl: "https://archive.org/download/TheGeneralBusterKeaton/The_General_Buster_Keaton.mp4",
+        descricao: "Quando espiões da União roubam a locomotiva amada do maquinista Johnnie Gray, ele embarca em uma perseguição frenética e solo para resgatar o trem e sua namorada.",
+        destaque: false,
+        comentarios: [
+          { autor: "Thiago Silva", nota: 5, texto: "Buster Keaton fazia suas próprias acrobacias sem dublê. Comédia genial e épica!", data: "Há 5 dias" }
+        ]
+      },
+      {
+        id: "charade-1963",
+        titulo: "Charade",
+        tituloPt: "Charada",
+        ano: 1963,
+        duracao: "113 min",
+        diretor: "Stanley Donen",
+        genero: "Drama",
+        classificacao: "12",
+        avaliacao: 4.6,
+        capa: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80",
+        banner: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1200&q=80",
+        videoUrl: "https://archive.org/download/charade1963/charade1963.mp4",
+        descricao: "Uma viúva recente em Paris é perseguida por vários homens que buscam a fortuna oculta de seu falecido marido, enquanto conta com a ajuda de um misterioso estranho.",
+        destaque: false,
+        comentarios: [
+          { autor: "Beatriz Ramos", nota: 4, texto: "Cary Grant e Audrey Hepburn possuem uma química fantástica na tela.", data: "Há 2 semanas" }
+        ]
+      },
+      {
+        id: "metropolis-1927",
+        titulo: "Metropolis",
+        tituloPt: "Metrópolis",
+        ano: 1927,
+        duracao: "153 min",
+        diretor: "Fritz Lang",
+        genero: "Sci-Fi",
+        classificacao: "12",
+        avaliacao: 4.9,
+        capa: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80",
+        banner: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1200&q=80",
+        videoUrl: "https://archive.org/download/Metropolis_1927/Metropolis_1927.mp4",
+        descricao: "Em uma cidade futurista distópica onde a sociedade está dividida entre os ricos e os trabalhadores explorados, o filho do governante apaixona-se por uma profetiza da classe trabalhadora.",
+        destaque: false,
+        comentarios: [
+          { autor: "André Rocha", nota: 5, texto: "Visualmente arrebatador. O pai de toda a ficção científica moderna.", data: "Há 1 mês" }
+        ]
+      },
+      {
+        id: "carnival-souls",
+        titulo: "Carnival of Souls",
+        tituloPt: "O Parque dos Insanos",
+        ano: 1962,
+        duracao: "78 min",
+        diretor: "Herk Harvey",
+        genero: "Terror",
+        classificacao: "14",
+        avaliacao: 4.4,
+        capa: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80",
+        banner: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
+        videoUrl: "https://archive.org/download/CarnivalOfSouls1962/CarnivalOfSouls1962.mp4",
+        descricao: "Após um acidente de carro trágico, uma jovem organista se muda para uma nova cidade, mas passa a ser perseguida por uma figura macabra e atração por um parque abandonado.",
+        destaque: false,
+        comentarios: [
+          { autor: "Fernanda Guedes", nota: 4, texto: "Clima cult de terror psicológico extremamente perturbador.", data: "Há 3 dias" }
+        ]
+      },
+      {
+        id: "gullivers-travels",
+        titulo: "Gulliver's Travels",
+        tituloPt: "As Viagens de Gulliver",
+        ano: 1939,
+        duracao: "76 min",
+        diretor: "Dave Fleischer",
+        genero: "Romance",
+        classificacao: "Livre",
+        avaliacao: 4.5,
+        capa: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80",
+        banner: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
+        videoUrl: "https://archive.org/download/gullivers_travels_1939/gullivers_travels_1939.mp4",
+        descricao: "Gulliver naufraga na ilha de Lilliput, cujos habitantes têm apenas alguns centímetros de altura, e acaba ajudando a resolver uma disputa entre reinos vizinhos.",
+        destaque: false,
+        comentarios: [
+          { autor: "Gabriel Matos", nota: 5, texto: "Animação belíssima da era de ouro dos irmãos Fleischer.", data: "Há 6 dias" }
+        ]
+      }
+    ];
+
+    /* ==========================================================================
+       2. GLOBAL STATE MANAGEMENT
+       ========================================================================== */
+    let favorites = JSON.parse(localStorage.getItem('cinepublico_favs') || '[]');
+    let currentGenreFilter = 'Todos';
+    let currentAgeFilter = 'Todas';
+    let currentActiveMovie = null;
+
+    /* ==========================================================================
+       3. DOM ELEMENTS
+       ========================================================================== */
+    const searchInput = document.getElementById('search-input');
+    const searchInputMobile = document.getElementById('search-input-mobile');
+    const searchDropdown = document.getElementById('search-dropdown');
+    const clearSearchBtn = document.getElementById('clear-search');
+    
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+
+    const sectionHome = document.getElementById('section-home');
+    const sectionMovies = document.getElementById('section-movies');
+    const sectionGenres = document.getElementById('section-genres');
+    const sectionFavorites = document.getElementById('section-favorites');
+
+    const watchModal = document.getElementById('watch-modal');
+    const mainVideoPlayer = document.getElementById('main-video-player');
+    const videoSource = document.getElementById('video-source');
+    
+    const favBadgeCount = document.getElementById('fav-badge-count');
+
+    /* ==========================================================================
+       4. INITIALIZATION & ROUTING
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      renderHeroBanner(moviesData[0]);
+      renderFilterPills();
+      renderHomeGrids();
+      renderCatalogGrid(moviesData);
+      renderGenresView();
+      renderFavoritesView();
+      updateFavBadge();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      // Sidebar Mobile Toggle
+      toggleSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+        sidebarOverlay.classList.toggle('hidden');
+      });
+      sidebarOverlay.addEventListener('click', () => {
+        sidebar.classList.add('-translate-x-full');
+        sidebarOverlay.classList.add('hidden');
+      });
+
+      // Search Inputs
+      searchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+      searchInputMobile.addEventListener('input', (e) => handleSearch(e.target.value));
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchDropdown.classList.add('hidden');
+        clearSearchBtn.classList.add('hidden');
+      });
+
+      // Sort Catalog Select
+      document.getElementById('sort-select').addEventListener('change', (e) => {
+        const val = e.target.value;
+        let sorted = [...moviesData];
+        if (val === 'year-desc') sorted.sort((a,b) => b.ano - a.ano);
+        else if (val === 'year-asc') sorted.sort((a,b) => a.ano - b.ano);
+        else if (val === 'title') sorted.sort((a,b) => a.tituloPt.localeCompare(b.tituloPt));
+        else if (val === 'pop') sorted.sort((a,b) => b.avaliacao - a.avaliacao);
+        renderCatalogGrid(sorted);
+      });
+
+      // Reset Filters
+      document.getElementById('reset-filters').addEventListener('click', () => {
+        currentGenreFilter = 'Todos';
+        currentAgeFilter = 'Todas';
+        renderFilterPills();
+        applyFilters();
+      });
+
+      // Modal Closers
+      document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+      document.getElementById('close-modal-x').addEventListener('click', closeModal);
+
+      // Hero Play Button
+      document.getElementById('hero-play-btn').addEventListener('click', () => {
+        openWatchModal(moviesData[0]);
+      });
+      document.getElementById('hero-fav-btn').addEventListener('click', () => {
+        toggleFavorite(moviesData[0].id);
+        updateHeroFavBtn();
+      });
+
+      // Comment Form Submission
+      document.getElementById('comment-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!currentActiveMovie) return;
+
+        const author = document.getElementById('comment-author').value.trim();
+        const rating = parseInt(document.getElementById('comment-rating').value);
+        const text = document.getElementById('comment-text').value.trim();
+
+        if (author && text) {
+          const newComment = {
+            autor: author,
+            nota: rating,
+            texto: text,
+            data: "Agora mesmo"
+          };
+          currentActiveMovie.comentarios.unshift(newComment);
+          renderModalComments(currentActiveMovie.comentarios);
+          showToast("Comentário adicionado com sucesso!", "success");
+          
+          document.getElementById('comment-text').value = '';
+          document.getElementById('comment-author').value = '';
+        }
+      });
+    }
+
+    /* ==========================================================================
+       5. NAVIGATION & SECTIONS
+       ========================================================================== */
+    function navigateSection(sectionName) {
+      // Hide all sections
+      [sectionHome, sectionMovies, sectionGenres, sectionFavorites].forEach(sec => sec.classList.add('hidden'));
+      
+      // Reset sidebar nav buttons style
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-brand-orange', 'bg-brand-orange/10', 'border-l-4', 'border-brand-orange');
+        btn.classList.add('text-gray-400');
+      });
+
+      // Active Target Section
+      const targetSec = document.getElementById(`section-${sectionName}`);
+      const targetNav = document.getElementById(`nav-${sectionName}`);
+
+      if (targetSec) targetSec.classList.remove('hidden');
+      if (targetNav) {
+        targetNav.classList.remove('text-gray-400');
+        targetNav.classList.add('text-brand-orange', 'bg-brand-orange/10', 'border-l-4', 'border-brand-orange');
+      }
+
+      // Close mobile sidebar if open
+      sidebar.classList.add('-translate-x-full');
+      sidebarOverlay.classList.add('hidden');
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ==========================================================================
+       6. RENDER HERO BANNER
+       ========================================================================== */
+    function renderHeroBanner(movie) {
+      const banner = document.getElementById('hero-banner');
+      banner.style.backgroundImage = `url('${movie.banner}')`;
+      document.getElementById('hero-title').innerText = movie.tituloPt;
+      document.getElementById('hero-genre').innerText = movie.genero;
+      document.getElementById('hero-rating').innerText = movie.avaliacao.toFixed(1);
+      document.getElementById('hero-year').innerText = movie.ano;
+      document.getElementById('hero-duration').innerText = movie.duracao;
+      document.getElementById('hero-age').innerText = `${movie.classificacao}+`;
+      document.getElementById('hero-desc').innerText = movie.descricao;
+
+      updateHeroFavBtn();
+    }
+
+    function updateHeroFavBtn() {
+      const heroMovieId = moviesData[0].id;
+      const isFav = favorites.includes(heroMovieId);
+      const btn = document.getElementById('hero-fav-btn');
+      btn.innerHTML = isFav 
+        ? `<i class="fa-solid fa-bookmark text-brand-yellow"></i> Salvo na Lista` 
+        : `<i class="fa-regular fa-bookmark"></i> Minha Lista`;
+    }
+
+    /* ==========================================================================
+       7. FILTROS DINÂMICOS DA HOME
+       ========================================================================== */
+    const genresList = ['Todos', 'Terror', 'Sci-Fi', 'Comédia', 'Drama', 'Romance'];
+    const ageList = ['Todas', 'Livre', '12', '14', '16'];
+
+    function renderFilterPills() {
+      const genreContainer = document.getElementById('genre-pills');
+      genreContainer.innerHTML = genresList.map(g => `
+        <button onclick="setGenreFilter('${g}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${currentGenreFilter === g ? 'bg-brand-orange text-white shadow-md' : 'bg-brand-card hover:bg-brand-border text-gray-300'}">
+          ${g}
+        </button>
+      `).join('');
+
+      const ageContainer = document.getElementById('age-pills');
+      ageContainer.innerHTML = ageList.map(a => `
+        <button onclick="setAgeFilter('${a}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${currentAgeFilter === a ? 'bg-brand-blue text-white shadow-md' : 'bg-brand-card hover:bg-brand-border text-gray-300'}">
+          ${a === 'Todas' ? 'Todas' : a === 'Livre' ? 'Livre' : a + '+'}
+        </button>
+      `).join('');
+    }
+
+    function setGenreFilter(genre) {
+      currentGenreFilter = genre;
+      renderFilterPills();
+      applyFilters();
+    }
+
+    function setAgeFilter(age) {
+      currentAgeFilter = age;
+      renderFilterPills();
+      applyFilters();
+    }
+
+    function applyFilters() {
+      let filtered = moviesData.filter(movie => {
+        const matchesGenre = currentGenreFilter === 'Todos' || movie.genero === currentGenreFilter;
+        const matchesAge = currentAgeFilter === 'Todas' || movie.classificacao === currentAgeFilter;
+        return matchesGenre && matchesAge;
+      });
+
+      // Update Trending grid with filtered
+      const gridTrending = document.getElementById('grid-trending');
+      gridTrending.innerHTML = filtered.length > 0 
+        ? filtered.map(m => createMovieCard(m)).join('')
+        : `<div class="col-span-full py-8 text-center text-gray-400 text-sm">Nenhum filme encontrado para os filtros selecionados.</div>`;
+      
+      document.getElementById('count-trending').innerText = `${filtered.length} títulos`;
+    }
+
+    /* ==========================================================================
+       8. CARDS DE FILMES & GRIDS
+       ========================================================================== */
+    function createMovieCard(movie) {
+      const isFav = favorites.includes(movie.id);
+      return `
+        <div class="film-card bg-brand-card rounded-2xl overflow-hidden border border-brand-border/70 flex flex-col group relative">
+          <!-- Poster Container -->
+          <div class="relative aspect-[2/3] overflow-hidden bg-brand-dark">
+            <img src="${movie.capa}" alt="${movie.tituloPt}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-card via-transparent to-transparent opacity-80"></div>
+            
+            <!-- Badges -->
+            <div class="absolute top-2.5 left-2.5 flex flex-col gap-1">
+              <span class="px-2 py-0.5 bg-brand-blue/90 text-white text-[10px] font-bold rounded-md backdrop-blur-xs">
+                ${movie.genero}
+              </span>
+            </div>
+
+            <button onclick="event.stopPropagation(); toggleFavorite('${movie.id}')" 
+                    class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-brand-black/70 hover:bg-brand-black text-gray-300 flex items-center justify-center transition-colors">
+              <i class="fa-${isFav ? 'solid text-brand-yellow' : 'regular'} fa-bookmark text-xs"></i>
+            </button>
+
+            <!-- Play Overlay Button -->
+            <button onclick="openWatchModalById('${movie.id}')" 
+                    class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="w-12 h-12 rounded-full bg-brand-orange text-white flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-play text-lg ml-0.5"></i>
+              </div>
+            </button>
+          </div>
+
+          <!-- Content Info -->
+          <div class="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+            <div>
+              <h4 onclick="openWatchModalById('${movie.id}')" class="font-bold text-sm text-gray-100 hover:text-brand-orange cursor-pointer line-clamp-1 transition-colors">
+                ${movie.tituloPt}
+              </h4>
+              <p class="text-xs text-gray-400 font-medium">${movie.ano} • ${movie.duracao}</p>
+            </div>
+
+            <div class="flex items-center justify-between text-xs pt-1 border-t border-brand-border/40">
+              <span class="text-brand-yellow font-bold flex items-center gap-1">
+                <i class="fa-solid fa-star text-[10px]"></i> ${movie.avaliacao.toFixed(1)}
+              </span>
+              <span class="text-[10px] text-gray-400 font-semibold uppercase px-1.5 py-0.5 border border-brand-border rounded">
+                ${movie.classificacao === 'Livre' ? 'LIVRE' : movie.classificacao + '+'}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHomeGrids() {
+      // Grid Trending (All or filtered)
+      applyFilters();
+
+      // Grid Horror
+      const horrorMovies = moviesData.filter(m => m.genero === 'Terror');
+      document.getElementById('grid-horror').innerHTML = horrorMovies.map(m => createMovieCard(m)).join('');
+
+      // Grid Sci-Fi
+      const scifiMovies = moviesData.filter(m => m.genero === 'Sci-Fi');
+      document.getElementById('grid-scifi').innerHTML = scifiMovies.map(m => createMovieCard(m)).join('');
+    }
+
+    function renderCatalogGrid(movies) {
+      const container = document.getElementById('catalog-grid');
+      container.innerHTML = movies.map(m => createMovieCard(m)).join('');
+    }
+
+    function renderGenresView() {
+      const container = document.getElementById('genres-container');
+      const uniqueGenres = ['Terror', 'Sci-Fi', 'Comédia', 'Drama', 'Romance'];
+
+      container.innerHTML = uniqueGenres.map(genre => {
+        const matches = moviesData.filter(m => m.genero === genre);
+        if (matches.length === 0) return '';
+        return `
+          <div class="space-y-3">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-brand-orange"></span>
+              ${genre} (${matches.length})
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              ${matches.map(m => createMovieCard(m)).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFavoritesView() {
+      const favGrid = document.getElementById('favorites-grid');
+      const emptyState = document.getElementById('empty-favorites');
+      const countText = document.getElementById('fav-count-text');
+
+      const favMovies = moviesData.filter(m => favorites.includes(m.id));
+      countText.innerText = `${favMovies.length} filme${favMovies.length !== 1 ? 's' : ''}`;
+
+      if (favMovies.length === 0) {
+        favGrid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+      } else {
+        favGrid.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        favGrid.innerHTML = favMovies.map(m => createMovieCard(m)).join('');
+      }
+    }
+
+    /* ==========================================================================
+       9. SEARCH FUNCTIONALITY (LIVE SEARCH)
+       ========================================================================== */
+    function handleSearch(query) {
+      const cleanQuery = query.toLowerCase().trim();
+      if (!cleanQuery) {
+        searchDropdown.classList.add('hidden');
+        clearSearchBtn.classList.add('hidden');
+        return;
+      }
+
+      clearSearchBtn.classList.remove('hidden');
+
+      const results = moviesData.filter(m => 
+        m.titulo.toLowerCase().includes(cleanQuery) ||
+        m.tituloPt.toLowerCase().includes(cleanQuery) ||
+        m.diretor.toLowerCase().includes(cleanQuery) ||
+        m.genero.toLowerCase().includes(cleanQuery)
+      );
+
+      if (results.length === 0) {
+        searchDropdown.innerHTML = `<div class="p-4 text-xs text-gray-400 text-center">Nenhum filme encontrado.</div>`;
+      } else {
+        searchDropdown.innerHTML = results.map(m => `
+          <div onclick="openWatchModalById('${m.id}'); searchDropdown.classList.add('hidden');" 
+               class="flex items-center gap-3 p-2.5 hover:bg-brand-dark cursor-pointer border-b border-brand-border/40 last:border-0 transition-colors">
+            <img src="${m.capa}" class="w-10 h-14 object-cover rounded" alt="${m.tituloPt}">
+            <div>
+              <h5 class="text-xs font-bold text-white">${m.tituloPt}</h5>
+              <p class="text-[11px] text-gray-400">${m.ano} • ${m.genero} • ${m.diretor}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      searchDropdown.classList.remove('hidden');
+    }
+
+    /* ==========================================================================
+       10. WATCH MODAL & PLAYER LOGIC
+       ========================================================================== */
+    function openWatchModalById(movieId) {
+      const movie = moviesData.find(m => m.id === movieId);
+      if (movie) openWatchModal(movie);
+    }
+
+    function openWatchModal(movie) {
+      currentActiveMovie = movie;
+
+      // Populate Player & Source
+      videoSource.src = movie.videoUrl;
+      mainVideoPlayer.load();
+
+      // Populate Information
+      document.getElementById('modal-movie-title').innerText = movie.tituloPt;
+      document.getElementById('modal-movie-genre').innerText = movie.genero;
+      document.getElementById('modal-movie-rating').innerHTML = `<i class="fa-solid fa-star"></i> ${movie.avaliacao.toFixed(1)}`;
+      document.getElementById('modal-movie-year').innerText = movie.ano;
+      document.getElementById('modal-movie-duration').innerText = movie.duracao;
+      document.getElementById('modal-movie-age').innerText = movie.classificacao === 'Livre' ? 'LIVRE' : movie.classificacao + '+';
+      document.getElementById('modal-movie-desc').innerText = movie.descricao;
+      document.getElementById('modal-movie-director').innerText = movie.diretor;
+
+      // Populate Favorite Button in Modal
+      updateModalFavBtn(movie.id);
+      document.getElementById('modal-fav-btn').onclick = () => {
+        toggleFavorite(movie.id);
+        updateModalFavBtn(movie.id);
+      };
+
+      // Populate Comments
+      renderModalComments(movie.comentarios);
+
+      // Populate Recommended Sidebar
+      const recommended = moviesData.filter(m => m.id !== movie.id).slice(0, 4);
+      document.getElementById('recommended-list').innerHTML = recommended.map(m => `
+        <div onclick="openWatchModalById('${m.id}')" class="flex gap-3 bg-brand-dark p-2 rounded-xl border border-brand-border/60 hover:border-brand-orange/50 cursor-pointer transition-all group">
+          <img src="${m.capa}" class="w-16 h-22 object-cover rounded-lg group-hover:scale-105 transition-transform" alt="${m.tituloPt}">
+          <div class="flex-1 flex flex-col justify-between py-1">
+            <div>
+              <h5 class="text-xs font-bold text-white group-hover:text-brand-orange transition-colors line-clamp-1">${m.tituloPt}</h5>
+              <p class="text-[11px] text-gray-400 mt-0.5">${m.ano} • ${m.genero}</p>
+            </div>
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="text-brand-yellow font-semibold"><i class="fa-solid fa-star text-[9px]"></i> ${m.avaliacao}</span>
+              <span class="text-brand-blue font-medium">Assistir <i class="fa-solid fa-circle-play text-[10px]"></i></span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Open Modal Screen
+      watchModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      watchModal.classList.add('hidden');
+      mainVideoPlayer.pause();
+      document.body.style.overflow = '';
+    }
+
+    function updateModalFavBtn(movieId) {
+      const isFav = favorites.includes(movieId);
+      const btn = document.getElementById('modal-fav-btn');
+      btn.innerHTML = isFav 
+        ? `<i class="fa-solid fa-bookmark text-brand-yellow"></i> <span>Salvo em Favoritos</span>` 
+        : `<i class="fa-regular fa-bookmark"></i> <span>Adicionar aos Favoritos</span>`;
+    }
+
+    function renderModalComments(comentarios) {
+      const list = document.getElementById('comments-list');
+      if (!comentarios || comentarios.length === 0) {
+        list.innerHTML = `<p class="text-xs text-gray-500 italic">Seja o primeiro a comentar sobre este filme!</p>`;
+        return;
+      }
+      list.innerHTML = comentarios.map(c => `
+        <div class="bg-brand-card p-3 rounded-xl border border-brand-border/50 space-y-1">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-gray-200">${c.autor}</span>
+            <span class="text-[10px] text-gray-500">${c.data}</span>
+          </div>
+          <div class="text-brand-yellow text-xs">
+            ${'★'.repeat(c.nota)}${'☆'.repeat(5 - c.nota)}
+          </div>
+          <p class="text-xs text-gray-300 leading-relaxed">${c.texto}</p>
+        </div>
+      `).join('');
+    }
+
+    /* ==========================================================================
+       11. FAVORITES LOGIC
+       ========================================================================== */
+    function toggleFavorite(movieId) {
+      const index = favorites.indexOf(movieId);
+      if (index > -1) {
+        favorites.splice(index, 1);
+        showToast("Removido dos Favoritos", "info");
+      } else {
+        favorites.push(movieId);
+        showToast("Adicionado aos Favoritos!", "success");
+      }
+      localStorage.setItem('cinepublico_favs', JSON.stringify(favorites));
+
+      updateFavBadge();
+      renderHomeGrids();
+      renderCatalogGrid(moviesData);
+      renderFavoritesView();
+      renderGenresView();
+      if (moviesData[0].id === movieId) updateHeroFavBtn();
+    }
+
+    function updateFavBadge() {
+      if (favorites.length > 0) {
+        favBadgeCount.innerText = favorites.length;
+        favBadgeCount.classList.remove('hidden');
+      } else {
+        favBadgeCount.classList.add('hidden');
+      }
+    }
+
+    /* ==========================================================================
+       12. UTILS & TOASTS
+       ========================================================================== */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-3 rounded-xl text-xs font-bold text-white shadow-xl flex items-center gap-2 transform translate-y-4 opacity-0 transition-all duration-300 pointer-events-auto ${
+        type === 'success' ? 'bg-brand-orange border border-orange-400' : 'bg-brand-blue border border-blue-400'
+      }`;
+      toast.innerHTML = `
+        <i class="fa-solid fa-${type === 'success' ? 'circle-check' : 'circle-info'}"></i>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function shareMovie() {
+      if (currentActiveMovie) {
+        const dummyUrl = window.location.href;
+        navigator.clipboard?.writeText(dummyUrl);
+        showToast("Link do filme copiado!", "info");
+      }
+    }
+  </script>
+</body>
+</html>
